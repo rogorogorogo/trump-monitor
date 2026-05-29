@@ -95,14 +95,12 @@ COMPANY_NAMES = {
     "microstrategy","marathon digital","riot platforms","rivian","lucid",
 }
 
-MARKET_TERMS = re.compile(
-    r'\b(stocks?|shares?|equit(y|ies)|markets?|wall street|stock market|'
-    r's&p\s*500|s&p|nasdaq|dow jones|\bdow\b|russell\s*2000|etf[s]?|'
-    r'mutual fund[s]?|index fund[s]?|bull market|bear market|trading|'
-    r'investors?|investment[s]?|portfolio|dividends?|earnings?|\bipo\b|'
-    r'bitcoin|crypto(currency)?|gold|treasur(y|ies)|bonds?|yields?|'
-    r'federal reserve|\bfed\b|interest rate[s]?|inflation|tariff[s]?|'
-    r'trade war|sanctions?|economy|economic|recession|\bgdp\b|deficit)\b',
+# Only tradeable assets — no broad macro/policy terms
+TRADEABLE_ASSETS = re.compile(
+    r'\b(bitcoin|btc|ethereum|eth|dogecoin|doge|solana|sol|xrp|ripple|'
+    r'crude oil|natural gas|gold|silver|platinum|'
+    r'spy|qqq|iwm|dia|gld|slv|tlt|arkk|soxx|smh|tqqq|sqqq|'
+    r's&p\s*500 (etf|fund)|nasdaq (etf|fund)|dow (etf|fund))\b',
     re.IGNORECASE
 )
 
@@ -153,11 +151,12 @@ def fetch_feed(name, url):
 
 
 def has_financial_mention(text):
+    # Must name a specific stock, company, ETF, or tradeable asset — no generic macro terms
     if TICKER_RE.search(text):
         return True
     if COMPANY_RE.search(text):
         return True
-    if MARKET_TERMS.search(text):
+    if TRADEABLE_ASSETS.search(text):
         return True
     return False
 
