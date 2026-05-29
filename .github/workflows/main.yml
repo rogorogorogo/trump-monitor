@@ -1,0 +1,39 @@
+name: Trump Stock Monitor
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # Every 15 minutes, 24/7
+  workflow_dispatch:           # Also allows manual runs from GitHub UI
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write          # Needed to commit the history file back
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install feedparser requests --quiet
+
+      - name: Run monitor
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: "7043700069"
+        run: python trump_monitor.py
+
+      - name: Save history
+        run: |
+          git config --global user.email "bot@trump-monitor"
+          git config --global user.name "Trump Monitor Bot"
+          git add trump_monitor_history.json
+          git diff --staged --quiet || git commit -m "chore: update history [skip ci]"
+          git push
